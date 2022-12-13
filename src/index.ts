@@ -25,9 +25,9 @@ app.post('/upload/image', upload.single('file'), async (req, res) => {
     await sharp(buffer)
         .webp({ quality: 40 })
         .toFile('./public/images/' + ref);
-    const link = `http://localhost:${S3_PORT}/images/${ref}`;
+    const imgPath = `/images/${ref}`;
 
-    return res.status(200).json({ link });
+    return res.status(200).json({ imgPath });
 })
 
 app.listen(S3_PORT, () => {
