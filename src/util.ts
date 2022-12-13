@@ -1,4 +1,5 @@
 import fs from 'fs';
+import multer from 'multer';
 
 export function checkPublicDir() {
     fs.access('./public', (error) => {
@@ -13,3 +14,6 @@ export function checkPublicDir() {
         }
     })
 }
+
+const storage = multer.memoryStorage();
+export const upload = multer({ storage });
