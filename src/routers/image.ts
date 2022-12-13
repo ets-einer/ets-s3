@@ -1,6 +1,8 @@
 import { Router } from "express";
 import sharp from 'sharp';
 import { upload, prisma } from "../util";
+import process from 'process';
+import path from 'path';
 
 const router = Router();
 
@@ -63,7 +65,7 @@ router.post('/upload/image', upload.single('file'), async (req, res) => {
 
     await sharp(buffer)
         .webp({ quality: options.quality || 40 })
-        .toFile('./public/images/' + ref);
+        .toFile(path.resolve(process.cwd() + '/public/images/' + ref));
 
     const imgPath = `/images/${ref}`;
 
