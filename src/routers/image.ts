@@ -1,13 +1,15 @@
 import { Router } from "express";
 import sharp from 'sharp';
-import { upload } from "../util";
-import { randomUUID } from 'crypto';
+import { upload, prisma } from "../util";
 
 const router = Router();
 
 type ImageUploadOptions = {
     quality?: number
+    meta?: any
 }
+
+type Result<ResOk, ResErr> = ResOk | ResErr;
 
 function validateOptions(options: ImageUploadOptions) {
     if (options.quality) {
@@ -17,6 +19,20 @@ function validateOptions(options: ImageUploadOptions) {
     }
 
     return null
+}
+
+type ResultOk = { ok: true, meta: string };
+
+type ResultErr = { ok: false, err: any };
+
+function validateAndParseMeta(meta: any): Result<ResultOk, ResultErr> {
+    try {
+        const result: ResultOk = { ok: true, meta: JSON.parse(meta) };
+        return result
+    } catch (err) {
+        const result: ResultErr = { ok: false, err };
+        return result
+    }
 }
 
 router.post('/upload/image', upload.single('file'), async (req, res) => {
@@ -30,6 +46,16 @@ router.post('/upload/image', upload.single('file'), async (req, res) => {
 
     if (error) return res.status(error.status).json({ err: error.err });
 
+    let meta: string | null = null;
+    if (options.meta) { 
+        const result = validateAndParseMeta(options.meta)
+        if (result.ok) {
+            meta = result.meta
+        } else {
+            return res.status(400).json({ err: result.err });
+        }
+    }
+
     const { buffer, originalname } = req.file;
     const timestamp = new Date().toISOString();
     const ref = `${timestamp}-${originalname.split('.')[0]}.webp`;
@@ -39,7 +65,16 @@ router.post('/upload/image', upload.single('file'), async (req, res) => {
         .toFile('./public/images/' + ref);
 
     const imgPath = `/images/${ref}`;
-    return res.status(200).json({ imgPath });
+
+    const file = await prisma.file.create({
+        data: {
+            type: 'image',
+            path: imgPath,
+            meta
+        }
+    })
+
+    return res.status(200).json({ file });
 })
 
 export default { router };
