@@ -1,5 +1,6 @@
 import fs from 'fs';
 import multer from 'multer';
+import { PrismaClient } from '@prisma/client';
 
 export function checkPublicDir() {
     fs.access('./public', (error) => {
@@ -17,3 +18,5 @@ export function checkPublicDir() {
 
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
+
+export const prisma = new PrismaClient();
