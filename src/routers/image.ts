@@ -9,7 +9,11 @@ type ImageUploadOptions = {
     meta?: any
 }
 
-type Result<ResOk, ResErr> = ResOk | ResErr;
+type ParseMetaOk = { ok: true, meta: string };
+
+type ParseMetaErr = { ok: false, err: any };
+
+type ParseMetaResult = ParseMetaOk | ParseMetaErr;
 
 function validateOptions(options: ImageUploadOptions) {
     if (options.quality) {
@@ -21,16 +25,13 @@ function validateOptions(options: ImageUploadOptions) {
     return null
 }
 
-type ResultOk = { ok: true, meta: string };
 
-type ResultErr = { ok: false, err: any };
-
-function validateAndParseMeta(meta: any): Result<ResultOk, ResultErr> {
+function validateAndParseMeta(meta: any): ParseMetaResult {
     try {
-        const result: ResultOk = { ok: true, meta: JSON.parse(meta) };
+        const result: ParseMetaOk = { ok: true, meta: JSON.parse(meta) };
         return result
     } catch (err) {
-        const result: ResultErr = { ok: false, err };
+        const result: ParseMetaErr = { ok: false, err };
         return result
     }
 }
